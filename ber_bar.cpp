@@ -23,6 +23,7 @@
 #include <QtGui/QApplication>
 #define LEN 9000
 #define LENGTH_OF_OFDM 14404
+#define standardalone
 //#define TEST_SOCKET
 #include "ui_ber_bar.h"
 socklen_t size_chl2_2;
@@ -54,8 +55,6 @@ BER_BAR::BER_BAR(QWidget *parent) :
     xRot += 0;
     yRot += 0;
     num_p = 300;
-
-
 
     InputManagement();
     size_chl2_2=sizeof(sockaddr_in);
@@ -108,31 +107,34 @@ void BER_BAR::paintGL()
     glRotatef(yRot, 0.0, 1.0, 0.0);
     glRotatef(zRot, 0.0, 0.0, 1.0);
 
-
-
-
-
-
     //Draw_point();
    // Draw_line();
 
     Bar_ber();
+
 }
 
 void BER_BAR::Bar_ber(){
 
+#ifdef connected
     double height = *(pdata2_2) * 2;
+#endif
+#ifdef standardalone
+    double height = 1.5;
+#endif
+
     //qDebug() <<  " height is :" << height;
 
      /*axis*/
     glLineWidth(3);
-    glBegin(GL_LINE_STRIP);
+    //glBegin(GL_LINE_STRIP);
+    glBegin(GL_LINE_LOOP);
     glColor4f(0.5,0,1,0.8);
-    glVertex2f(-0.5,2.2);
-    glVertex2f(-0.5,0);//x,y
-    glVertex2f(1.5,0);//x,y
+    glVertex2f(-0.5,2.2); //left up
+    glVertex2f(-0.5,0);// left,down
+    glVertex2f(1.5,0);//right down
+    glVertex2f(1.5,2.2);//right up
     glEnd();
-
     /*bar*/
     glBegin(GL_QUADS);
     glColor4f(1,0,0,0.5);
@@ -143,13 +145,42 @@ void BER_BAR::Bar_ber(){
     glEnd();
 
     /*error == 1 */
+    glColor3f(1,0,0);
+    renderText(-0.8,2,1,"100%");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
     glVertex2f(-0.5,2);
     glVertex2f(1.5,2);//x,y
-
     glEnd();
+
+    glColor3f(1,0,0);
+    renderText(-0.8,1.5,1,"75%");
+    glLineWidth(0.5);
+    glBegin(GL_LINE_STRIP);
+    glColor4f(0,0,1,0.8);
+    glVertex2f(-0.5,1.5);
+    glVertex2f(1.5,1.5);//x,y
+    glEnd();
+
+    glColor3f(1,0,0);
+    renderText(-0.8,1,1,"50%");
+    glLineWidth(0.5);
+    glBegin(GL_LINE_STRIP);
+    glColor4f(0,0,1,0.8);
+    glVertex2f(-0.5,1);
+    glVertex2f(1.5,1);//x,y
+    glEnd();
+
+    glColor3f(1,0,0);
+    renderText(-0.8,0.5,1,"25%");
+    glLineWidth(0.5);
+    glBegin(GL_LINE_STRIP);
+    glColor4f(0,0,1,0.8);
+    glVertex2f(-0.5,0.5);
+    glVertex2f(1.5,0.5);//x,y
+    glEnd();
+
 
 
 }
@@ -226,6 +257,7 @@ void BER_BAR::timerEvent(QTimerEvent *event){
         pilot32[i].value = 0;
     }
 
+ #ifdef connected
     recvfrom(sockser_chl1_2,&buff,14404*3+10,0,(struct sockaddr *)&addrrcv_chl1_2,(socklen_t*)&size_chl2_2);//port :7005.3
 
 
@@ -341,7 +373,6 @@ void BER_BAR::timerEvent(QTimerEvent *event){
 
 
 
-
     //*(pdata) = 2*sin(cnt_2_update);
 
 
@@ -349,7 +380,7 @@ void BER_BAR::timerEvent(QTimerEvent *event){
 
     ber();
 
-
+#endif
     updateGL();
 
 
