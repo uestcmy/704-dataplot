@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     w4.show();
     w4.setWindowTitle("BER");
     return app.exec();
-
+    //edit in fedora
 }
 
 
