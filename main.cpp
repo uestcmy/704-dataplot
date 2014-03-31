@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     BER_BAR w4;
     w4.resize(600,450);
     w4.show();
-    w4.setWindowTitle("BER");
+    w4.setWindowTitle("BER (Port:7007)");
     return app.exec();
     //edit in fedora
 }

@@ -23,7 +23,7 @@
 #include <QtGui/QApplication>
 #define LEN 9000
 #define LENGTH_OF_OFDM 14404
-#define standardalone
+#define connected
 //#define TEST_SOCKET
 #include "ui_ber_bar.h"
 socklen_t size_chl2_2;
@@ -37,7 +37,7 @@ double data1_2[1800][2] = {0};//complex number real and image
 double data2_2[1800][2] = {0};
 int err_2 = 0;
 int bit_cnt_2_2 = 0;
-
+char db[20] = {0};
 
 
 
@@ -112,6 +112,10 @@ void BER_BAR::paintGL()
 
     Bar_ber();
 
+    if(bit_cnt_2_2 == 19500 ){
+        sprintf(db,"%lf",err_2/20000.0);
+    }
+    renderText(0.3,-0.3,1,db);
 }
 
 void BER_BAR::Bar_ber(){
