@@ -25,22 +25,35 @@
 #define LENGTH_OF_OFDM 14404
 #define connected
 //#define TEST_SOCKET
+#include "chol_inv_4.cpp"
 #include "ui_throughput.h"
 socklen_t size_chl2_3;
+socklen_t size_chl2_4;
 int cnt_3 = 0;
 sockaddr_in addrSrv_chl1_3,addrrcv_chl1_3;
+sockaddr_in addrSrv_chl1_4,addrrcv_chl1_4;
 int sockser_chl1_3;
+int sockser_chl1_4;
  double pilot4[1200][2] = {0};
+  double pilot2[1200][2] = {0};
  double qam16_3[500][2] = {0};
 char map1200_3[1200][8];
+char map1200[1200][8];
 double data1_3[1800][2] = {0};//complex number real and image
 double data2_3[1800][2] = {0};
+double data1[1800][2] = {0};
+double new_star[1000][2] = {0};
+int cnt_newstar = 0;
 int err_3 = 0;
 int bit_cnt_2_3 = 0;
 char db_2[50] = {0};
 int flag_bar = 0;
+int  cnt_pilot = 0;
 
-
+double cnt_allstar1 = 0;
+double cnt_err_g1 = 0;
+double comp_err_1 = 0;
+    double height2[9] = {0};
 ThroughPut::ThroughPut(QWidget *parent) :
     QGLWidget(parent),
     ui(new Ui::ThroughPut)
@@ -63,6 +76,14 @@ ThroughPut::ThroughPut(QWidget *parent) :
     addrSrv_chl1_3.sin_family=AF_INET;
     addrSrv_chl1_3.sin_port=htons(7008);//server : receive port number
     bind(sockser_chl1_3,(sockaddr*)&addrSrv_chl1_3,sizeof(sockaddr));
+
+    size_chl2_4=sizeof(sockaddr_in);
+    sockser_chl1_4=socket(AF_INET,SOCK_DGRAM,0);
+    addrSrv_chl1_4.sin_addr.s_addr=htonl(INADDR_ANY);
+    addrSrv_chl1_4.sin_family=AF_INET;
+    addrSrv_chl1_4.sin_port=htons(7021);//server : receive port number
+    bind(sockser_chl1_4,(sockaddr*)&addrSrv_chl1_4,sizeof(sockaddr));
+
 
     id1 = startTimer(100);
 
@@ -112,25 +133,22 @@ void ThroughPut::paintGL()
 
     Bar_ber();
 
-    if(bit_cnt_2_3 == 19500 ){
-        sprintf(db_2,"Thtoughput : %lf  bps/Hz",4*(1-err_3/20000.0));
-    }
-    renderText(-0.2,-0.3,1,db_2);
+
 }
 
 void ThroughPut::Bar_ber(){
-    double height;
+
 #ifdef connected
     if( flag_bar == 0 ){
-             height = 0;
+        height2[0] = 0;
     }
     if(flag_bar == 1 || *(pdata2_3) - 0 > 1e-7 ){
-          height = 2-*(pdata2_3) * 2;
+        height2[0] =  -1 + (1-*(pdata2_3))*2;
           flag_bar = 1;
     }
 #endif
 #ifdef standardalone
-    double height = 1.5;
+    double height2[0] = 1.5;
 #endif
 
     //qDebug() <<  " height is :" << height;
@@ -140,59 +158,61 @@ void ThroughPut::Bar_ber(){
     //glBegin(GL_LINE_STRIP);
     glBegin(GL_LINE_LOOP);
     glColor4f(0.5,0,1,0.8);
-    glVertex2f(-0.5,2.2); //left up
-    glVertex2f(-0.5,0);// left,down
-    glVertex2f(1.5,0);//right down
-    glVertex2f(1.5,2.2);//right up
+    glVertex2f(-3,2); //left up
+    glVertex2f(-3,-1);// left,down
+    glVertex2f(6.5,-1);//right down
+    glVertex2f(6.5,2);//right up  [-3 6.5 2 -1]
     glEnd();
     /*bar*/
-    glBegin(GL_QUADS);
-    glColor4f(1,0,0,0.5);
-    glVertex2f(0,0);//x,y
-    glVertex2f(0,height);
-    glVertex2f(1,height);
-    glVertex2f(1,0);
-    glEnd();
+   double pos = 0;
 
+    for( int i = 0 ; i < 9 ; i++ ){
+    glBegin(GL_QUADS);
+    glColor4f(1,i/9.0,0,0.5);
+    glVertex2f(-1.8+pos,-1);//x,y
+    glVertex2f(-1.8+pos,height2[i]);
+    glVertex2f(-2.5+pos,height2[i]);
+    glVertex2f(-2.5+pos,-1);
+     glEnd();
+     pos  = (i+1)*1.005;
+    }
     /*error == 1 */
 
     glColor3f(1,0,0);
-    renderText(-0.8,2.3,1,"bps/Hz");
+    renderText(-3.5,2.2,1,"bps/Hz");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
-    glVertex2f(-0.5,2);
-    glVertex2f(1.5,2);//x,y
+    glVertex2f(-3,1);
+    glVertex2f(6.5,1);//x,y
     glEnd();
     glColor3f(1,0,0);
-    renderText(-0.8,2,1,"4");
+    renderText(-3.5,1,1,"4");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
-    glVertex2f(-0.5,2);
-    glVertex2f(1.5,2);//x,y
+    glVertex2f(-3,0.5);
+    glVertex2f(6.5,0.5);//x,y
     glEnd();
-
     glColor3f(1,0,0);
-    renderText(-0.8,1.5,1,"3");
+    renderText(-3.5,0.5,1,"3");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
-    glVertex2f(-0.5,1.5);
-    glVertex2f(1.5,1.5);//x,y
+    glVertex2f(-3,0);
+    glVertex2f(6.5,0);//x,y
     glEnd();
-
     glColor3f(1,0,0);
-    renderText(-0.8,1,1,"2");
+    renderText(-3.5,0,1,"2");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
-    glVertex2f(-0.5,1);
-    glVertex2f(1.5,1);//x,y
+    glVertex2f(-3,-0.5);
+    glVertex2f(6.5,-0.5);//x,y
     glEnd();
 
     glColor3f(1,0,0);
-    renderText(-0.8,0.5,1,"1");
+    renderText(-3.5,-0.5,1,"1");
     glLineWidth(0.5);
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
@@ -201,7 +221,11 @@ void ThroughPut::Bar_ber(){
     glEnd();
 
 
-
+    if(bit_cnt_2_3 == 19500 ){
+        sprintf(db_2,"%.3lf",4*(1-err_3/20000.0));
+    }
+    renderText(-2.4,2.2,1.1," 16QAM");
+    renderText(-2.4,-1.3,1.1,db_2);
 }
 void ThroughPut::myDrawPoint(double x,double y,double z,double r){//x,y,z, and  radium
 
@@ -399,8 +423,288 @@ void ThroughPut::timerEvent(QTimerEvent *event){
 
     ber();
 
+    recvfrom(sockser_chl1_4,&buff,LENGTH_OF_OFDM*3+10,0,(struct sockaddr *)&addrrcv_chl1_4,(socklen_t*)&size_chl2_4);//port :7021
+
+
+   // qDebug() << "Counter is " << cnt++ << endl;
+
+   // qDebug() << buff << endl;
+    for( int i = 0 ; i < 2400 ; i ++){
+       int position = i * 6;
+       char tmp;
+       //swap
+       tmp = buff[position];
+       buff[position] = buff[position+3];
+       buff[position+3] = tmp;
+       //swap
+       position ++;
+       tmp = buff[position];
+       buff[position] = buff[position+3];
+       buff[position+3] = tmp;
+    }//for
+    //qDebug() << buff << endl;
+
+    position = 12; // avoid the header a0aa 3c20 cccc
+    for( int i = 0 ; i < 1200 ; i++){
+        for( int j = 0 ; j <8 ;) {
+            map1200[i][j++] = buff[position++];
+            map1200[i][j++] = buff[position++];
+            position++;//avoid the comma
+       }//for j
+    }//for i
+    for( int i = 0 ; i < 1200 ; i++){
+        data1[i][0]=hex2int(map1200[i][0],map1200[i][1],map1200[i][2],map1200[i][3]);
+        data1[i][1]=hex2int(map1200[i][4],map1200[i][5],map1200[i][6],map1200[i][7]);
+       // qDebug() << data1[i][0] << data1[i][1] ;//<<data2[i][0] <<data2[i][1] <<endl;
+    }//for i
+
+    sys_function();//data >>   function >> HWS
+
 #endif
     updateGL();
+
+
+}
+
+
+
+
+void ThroughPut::sys_function(){
+    // (2+i) *(3-i)
+    /*
+    double re,im;
+    mult(2,1,3,-1,&re, &im);
+    qDebug() << " re , im : " << re  << im;
+*/
+
+
+    double mat48_1_re[4][8];
+    double mat48_1_im[4][8];
+
+    double mat48_2_re[4][8];
+    double mat48_2_im[4][8];
+
+    double mat48_tmp_re[4][8];
+    double mat48_tmp_im[4][8];
+
+    double mat84_tmp_re[8][4];
+    double mat84_tmp_im[8][4];
+
+    double mat44_tmp_re[4][4] = {0};
+    double mat44_tmp_im[4][4] = {0};
+
+    double mat44_inv_re[4][4];
+    double mat44_inv_im[4][4];
+
+    double w84_re[8][4];
+    double w84_im[8][4];
+
+    double hw44_re[4][4];
+    double hw44_im[4][4];
+/*
+    FILE *fp1,*fp2;
+    fp2 = fopen("data.txt","r");
+     fp1 = fopen("data2out.txt","w");
+    for( int i = 0 ; i < 4 ; i++){
+        for( int j = 0 ; j < 8 ; j++ ){
+            fscanf(fp2,"%lf",&mat48_1_re[i][j]);
+        }
+    }
+    for( int i = 0 ; i < 4 ; i++){
+        for( int j = 0 ; j < 8 ; j++ ){
+            fscanf(fp2,"%lf",&mat48_1_im[i][j]);
+        }
+    }
+    fclose(fp2);
+    */
+
+
+    for( int t = 0 ; t < 3 ; t++){//time
+        for(int f = 0 ; f < 4 ; f ++){//freq
+            // get data t1
+            for (int i = 0;i<4;i++){
+                for(int j=0;j<8;j++){
+                    mat48_1_re[i][j]=data1[i*256+j + 64*t + 8*f ][0];
+                    mat48_1_im[i][j]=data1[i*256+j + 64*t + 8*f  ][1];
+                }
+            }
+            // get data t2
+            for (int i = 0;i<4;i++){
+                for(int j=0;j<8;j++){
+                    mat48_2_re[i][j]=data1[i*256+j + 64*t+ 64 + 8*f ][0];
+                    mat48_2_im[i][j]=data1[i*256+j + 64*t  + 64 + 8*f  ][1];
+                }
+            }
+            hermitian( 4,8,mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im );
+            Matrix_mult484(mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im, mat44_tmp_re,mat44_tmp_im);
+            chol_inv(mat44_tmp_re,mat44_tmp_im,mat44_inv_re,mat44_inv_im);
+            Matrix_mult844(mat84_tmp_re,mat84_tmp_im, mat44_inv_re,mat44_inv_im, w84_re,w84_im);
+            Matrix_mult484(mat48_2_re,mat48_2_im,w84_re,w84_im,hw44_re,hw44_im);
+            // jiu xiangpian
+            double alpha=0;
+
+            for (int i=0;i<4;i++){
+                alpha += 0.25 * atan(hw44_im[i][i]/hw44_re[i][i]);
+
+            }
+            double hw2_44_re[4][4];
+            double hw2_44_im[4][4];
+            for(int i = 0 ; i < 4 ; i++ ){
+                for( int j = 0 ; j < 4 ; j++ ){
+                    mult(cos(alpha),-sin(alpha),hw44_re[i][j],hw44_im[i][j],&hw2_44_re[i][j],&hw2_44_im[i][j]);
+                }
+            }
+            //get x
+            double x_re[4][1];
+            double x_im[4][1];
+            double y41_re[4][1];
+            double y41_im[4][1];
+            for( int ip = 0 ; ip < 4 ; ip++ ){
+                x_re[ip][0] = pilot2[cnt_pilot][0];
+                x_im[ip][0] = pilot2[cnt_pilot++][1];
+                if(cnt_pilot == 1200){
+                    cnt_pilot = 0;
+                }
+            }
+            //y = hw*x
+            Matrix_mult441(hw2_44_re,hw2_44_im,x_re,x_im,y41_re,y41_im);
+/*
+            for( int i = 0 ; i < 4 ; i++ ){
+                qDebug() << hw2_44_re[i][0]  << hw2_44_re[i][1]  << hw2_44_re[i][2]  << hw2_44_re[i][3]  ;
+            }qDebug() << "\n";
+*/
+
+           cnt_allstar1 ++;
+           if( ( (y41_re[0][0] -x_re[0][0] )*(y41_re[0][0] -x_re[0][0]) + (y41_im[0][0] -x_im[0][0])*(y41_im[0][0] -x_im[0][0]) ) >0.5 ){
+                cnt_err_g1++;
+           }
+           if( cnt_allstar1 == 500){
+                 comp_err_1 = cnt_err_g1 / cnt_allstar1;
+                  height2[1] = -1+ (1-comp_err_1) ;
+                 qDebug() << " comp err : " << cnt_err_g1;
+                   qDebug() << " yre : " << y41_re[0][0]   << " yim : " << y41_im[0][0]  ;
+                   qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
+                 cnt_allstar1 = 0;
+                 cnt_err_g1 = 0;
+           }
+
+            new_star[cnt_newstar][0] = y41_re[0][0];
+            new_star[cnt_newstar++][1] = y41_im[0][0];
+
+            if(cnt_newstar == 120){
+                cnt_newstar = 0;
+            }
+        }
+    }
+
+   #ifdef onetime
+    for (int i = 0;i<4;i++){
+        for(int j=0;j<8;j++){
+            mat48_1_re[i][j]=data1[i*256+j][0];
+            mat48_1_im[i][j]=data1[i*256+j][1];
+        }
+    }
+
+    for (int i = 0;i<4;i++){
+        for(int j=0;j<8;j++){
+            mat48_2_re[i][j]=data1[i*256+j+64][0];
+            mat48_2_im[i][j]=data1[i*256+j+64][1];
+        }
+    }
+    hermitian( 4,8,mat48_1_re,mat48_1_im,
+                    mat84_tmp_re,mat84_tmp_im );
+
+    Matrix_mult484(mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im, mat44_tmp_re,mat44_tmp_im);
+    chol_inv(mat44_tmp_re,mat44_tmp_im,mat44_inv_re,mat44_inv_im);
+    Matrix_mult844(mat84_tmp_re,mat84_tmp_im, mat44_inv_re,mat44_inv_im, w84_re,w84_im);
+    Matrix_mult484(mat48_2_re,mat48_2_im,w84_re,w84_im,hw44_re,hw44_im);
+    double x_re[4][1];
+    double x_im[4][1];
+    double y41_re[4][1];
+    double y41_im[4][1];
+
+    for( int i = 0 ; i < 4 ; i++ ){
+        x_re[i][0] = pilot2[i][0];
+        x_im[i][0] = pilot2[i][1];
+    }
+
+
+
+    double alpha=0;
+
+    for (int i=0;i<4;i++){
+        alpha += 0.25 * atan(hw44_im[i][i]/hw44_re[i][i]);
+
+    }
+    double hw2_44_re[4][4];
+    double hw2_44_im[4][4];
+    for(int i = 0 ; i < 4 ; i++ ){
+        for( int j = 0 ; j < 4 ; j++ ){
+            mult(cos(alpha),-sin(alpha),hw44_re[i][j],hw44_im[i][j],&hw2_44_re[i][j],&hw2_44_im[i][j]);
+        }
+    }
+    Matrix_mult441(hw2_44_re,hw2_44_im,x_re,x_im,y41_re,y41_im);
+
+/*
+    for( int i = 0 ; i < 4; i++){
+        for( int j = 0 ; j < 4 ; j++ ){
+            fprintf(fp1,"%lf\t",hw44_re[i][j]);
+        }fprintf(fp1,"\n");
+    }
+    for( int i = 0 ; i < 4; i++){
+        for( int j = 0 ; j < 4 ; j++ ){
+            fprintf(fp1,"%lf\t",hw44_im[i][j]);
+        }fprintf(fp1,"\n");
+    }
+    */
+    for( int i = 0 ; i < 4; i++){
+        qDebug() << hw44_re[i][0] << hw44_re[i][1] << hw44_re[i][2] << hw44_re[i][3];// << mat48_1_re[i][4] << mat48_1_re[i][5] << mat48_1_re[i][6] << mat48_1_re[i][7];
+    }qDebug()<<"\n";
+    for( int i = 0 ; i < 4; i++){
+        qDebug() << hw44_im[i][0] << hw44_im[i][1] << hw44_im[i][2] << hw44_im[i][3] ;//<< hw44_im[i][4] << mat48_2_re[i][5] << mat48_2_re[i][6] << mat48_2_re[i][7];
+        }qDebug()<<"\n";
+
+    qDebug() << "y  re is "<< y41_re[0][0] <<  y41_re[1][0] <<  y41_re[2][0] <<  y41_re[3][0] ;
+    qDebug() << "y im is "<< y41_im[0][0] <<  y41_im[1][0] <<  y41_im[2][0] <<  y41_im[3][0] ;
+    qDebug() << "x  re is "<< pilot2[0][0] <<  pilot2[1][0] <<  pilot2[2][0] <<  pilot2[3][0] ;
+    qDebug() << "x im is "<< pilot2[0][1] <<  pilot2[1][1] <<  pilot2[2][1] <<  pilot2[3][1] ;
+
+    new_star[cnt_newstar][0] = y41_re[1][0];
+    new_star[cnt_newstar++][1] = y41_im[1][0];
+
+    new_star[cnt_newstar][0] = y41_re[0][0];
+    new_star[cnt_newstar++][1] = y41_im[0][0];
+    new_star[cnt_newstar][0] = y41_re[2][0];
+    new_star[cnt_newstar++][1] = y41_im[2][0];
+    new_star[cnt_newstar][0] = y41_re[3][0];
+    new_star[cnt_newstar++][1] = y41_im[3][0];
+    if(cnt_newstar == 60){
+        cnt_newstar = 0;
+    }
+#endif
+/*
+    for( int i = 0 ; i < 4; i++){
+        qDebug() << mat48_1_re[i][0] << mat48_1_re[i][1] << mat48_1_re[i][2] << mat48_1_re[i][3] << mat48_1_re[i][4] << mat48_1_re[i][5] << mat48_1_re[i][6] << mat48_1_re[i][7];
+    }qDebug()<<"\n";
+    for( int i = 0 ; i < 4; i++){
+        qDebug() << mat48_2_re[i][0] << mat48_2_re[i][1] << mat48_2_re[i][2] << mat48_2_re[i][3] << mat48_2_re[i][4] << mat48_2_re[i][5] << mat48_2_re[i][6] << mat48_2_re[i][7];
+        }qDebug()<<"\n";
+
+*/
+
+   //Matrix_mult484(mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im, mat44_tmp_re,mat44_tmp_im);
+/*
+    for( int i = 0 ; i < 4 ; i++){
+         for( int j = 0 ; j < 4 ; j++){
+             mat44_tmp_re[i][1] = 1;
+         }
+    }
+    */
+
+
+
+
+
 
 
 }
@@ -506,6 +810,41 @@ int ThroughPut::hex2int(char a,char b,char c,char d)
 }
 void ThroughPut::InputManagement(){
     //QFile file("datain.txt");
+    QFile file0("./Pilot_send_data/pilot_1200_im.txt");
+    if (!file0.open(QIODevice::ReadOnly | QIODevice::Text)){
+        qDebug() << file0.errorString();
+        qDebug() << "Last sentence is in QPSK Inputmanagement." << endl;
+
+    }
+    //qDebug() << QObject::tr("file text:") << endl << file.readAll();
+    //char str[100];
+    char str6[100];
+    for( int i = 0 ; i < 1200 ; i++ ){
+        file0.readLine(str6,100);
+        double crr = 0;
+        crr = char2int(str6);
+        //qDebug() << "pilot2[ "<< i <<"][0] is :"<<crr;
+        pilot2[i][1] = crr;
+    }
+  file0.close();
+
+  QFile file5("./Pilot_send_data/pilot_1200_re.txt");
+  if (!file5.open(QIODevice::ReadOnly | QIODevice::Text)){
+      qDebug() << file5.errorString();
+      qDebug() << "Last sentence is in QPSK Inputmanagement." << endl;
+
+  }
+  //qDebug() << QObject::tr("file text:") << endl << file.readAll();
+  //char str[100];
+
+  for( int i = 0 ; i < 1200 ; i++ ){
+      file5.readLine(str6,100);
+      double crr = 0;
+      crr = char2int(str6);
+      //qDebug() << "pilot2[ "<< i <<"][0] is :"<<crr;
+      pilot2[i][0] = crr;
+  }
+file5.close();
 
     //QFile file("./pilot4_send_data/pilot4_1200_re.txt");
     QFile file("./16qam_data_new/data_im.txt");
@@ -596,6 +935,12 @@ void ThroughPut::InputManagement(){
 
     //qDebug() << "last one is :"<< ThroughPut[9][0] ;
     file4.close();
+
+
+
+
+
+
 
 }
 

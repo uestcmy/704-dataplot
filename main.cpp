@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     w24.setWindowTitle("BER");
 */
     ThroughPut w5;
-    w5.resize(600,450);
+    w5.resize(800,250);
     w5.show();
     w5.setWindowTitle("ThroughPut (Port:7008)");
 

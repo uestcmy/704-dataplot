@@ -36,6 +36,7 @@ public:
     void D_Adjust(double *tmp);
     void Draw_line();
     void Bar_ber();
+    void sys_function();
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
