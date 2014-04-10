@@ -5,6 +5,7 @@
 #include <qpsk.h>
 #include <ber_bar.h>
 #include <ber.h>
+#include <throughput.h>
 #include <GL/glut.h>
 
 
@@ -33,11 +34,20 @@ int main(int argc, char *argv[])
     w24.show();
     w24.setWindowTitle("BER");
 */
+    ThroughPut w5;
+    w5.resize(600,450);
+    w5.show();
+    w5.setWindowTitle("ThroughPut (Port:7008)");
+
+/*
     BER_BAR w4;
     w4.resize(600,450);
     w4.show();
     w4.setWindowTitle("BER (Port:7007)");
-    return app.exec();
+
+*/
+ return app.exec();
+
     //edit in fedora
 }
 
