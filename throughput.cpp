@@ -23,7 +23,7 @@
 #include <QtGui/QApplication>
 #define LEN 9000
 #define LENGTH_OF_OFDM 14404
-#define connected
+//#define connected
 //#define TEST_SOCKET
 #include "chol_inv_4.cpp"
 #include "ui_throughput.h"
@@ -51,9 +51,13 @@ int flag_bar = 0;
 int  cnt_pilot = 0;
 
 double cnt_allstar1 = 0;
+double cnt_allstar2 = 0;
+
 double cnt_err_g1 = 0;
+double cnt_err_g[8] ={0};
+
 double comp_err_1 = 0;
-    double height2[9] = {0};
+double height2[9] = {0};
 ThroughPut::ThroughPut(QWidget *parent) :
     QGLWidget(parent),
     ui(new Ui::ThroughPut)
@@ -224,8 +228,22 @@ void ThroughPut::Bar_ber(){
     if(bit_cnt_2_3 == 19500 ){
         sprintf(db_2,"%.3lf",4*(1-err_3/20000.0));
     }
-    renderText(-2.4,2.2,1.1," 16QAM");
-    renderText(-2.4,-1.3,1.1,db_2);
+    char title[9][50];
+    sprintf(title[0],"16QAM");
+    sprintf(title[1],"16QAM");
+    sprintf(title[2],"16QAM");
+    sprintf(title[3],"16QAM");
+    sprintf(title[4],"16QAM");
+    sprintf(title[5],"16QAM");
+    sprintf(title[6],"16QAM");
+    sprintf(title[7],"16QAM");
+    sprintf(title[8],"16QAM");
+
+    for( int i = 0 ; i < 9 ; i ++ ){
+        renderText(-2.5+ i * 1.01 ,2.2,1.1,title[i]);
+        renderText(-2.5+ i *1.01,-1.3,1.1,"5.123");
+    }
+
 }
 void ThroughPut::myDrawPoint(double x,double y,double z,double r){//x,y,z, and  radium
 
@@ -374,7 +392,7 @@ void ThroughPut::timerEvent(QTimerEvent *event){
         //qDebug() << "  angle :  "<<atan(H11[i][1]/H11[i][0]);
         absH11[i] = sqrt(H11[i][0]*H11[i][0] + H11[i][1]*H11[i][1]);
 
-    }//for i
+    }//for icnt_err_g
 
     //interp :edited by hh
     for(int i=0;i<200;i++){
@@ -461,6 +479,8 @@ void ThroughPut::timerEvent(QTimerEvent *event){
     sys_function();//data >>   function >> HWS
 
 #endif
+    sys_function();//data >>   function >> HWS
+
     updateGL();
 
 
@@ -578,9 +598,24 @@ void ThroughPut::sys_function(){
            if( ( (y41_re[0][0] -x_re[0][0] )*(y41_re[0][0] -x_re[0][0]) + (y41_im[0][0] -x_im[0][0])*(y41_im[0][0] -x_im[0][0]) ) >0.5 ){
                 cnt_err_g1++;
            }
+
+           for( int i = 0 ; i < 4 ; i ++ ){
+               if( ( (y41_re[i][0] -x_re[i][0] )*(y41_re[i][0] -x_re[i][0]) + (y41_im[i][0] -x_im[i][0])*(y41_im[i][0] -x_im[i][0]) ) >0.5 ){
+                    cnt_err_g[i]++;
+               }
+           }
+
            if( cnt_allstar1 == 500){
-                 comp_err_1 = cnt_err_g1 / cnt_allstar1;
-                  height2[1] = -1+ (1-comp_err_1) ;
+               for( int i = 0 ; i < 4 ; i++ ){
+                   comp_err_1 = cnt_err_g[i] / cnt_allstar1;
+                  //height2[i] = -1+ (1-comp_err_1) ;
+                   height2[i] = -1+ i*0.3 ;
+
+               }
+               height2[4] = height2[1] ;
+               height2[5] = height2[2] ;
+
+
                  qDebug() << " comp err : " << cnt_err_g1;
                    qDebug() << " yre : " << y41_re[0][0]   << " yim : " << y41_im[0][0]  ;
                    qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
@@ -596,6 +631,99 @@ void ThroughPut::sys_function(){
             }
         }
     }
+
+
+
+
+    for( int t = 0 ; t < 3 ; t++){//time
+        for(int f = 0 ; f < 4 ; f ++){//freq
+            // get data t1
+            for (int i = 0;i<4;i++){
+                for(int j=0;j<8;j++){
+                    mat48_1_re[i][j]=data1[i*256+j + 64*t + 8*f  +32][0];//s1 ue2
+                    mat48_1_im[i][j]=data1[i*256+j + 64*t + 8*f  +32][1];
+                }
+            }
+            // get data t2
+            for (int i = 0;i<4;i++){
+                for(int j=0;j<8;j++){
+                    mat48_2_re[i][j]=data1[i*256+j + 64*t+ 64 + 8*f  +32][0];
+                    mat48_2_im[i][j]=data1[i*256+j + 64*t  + 64 + 8*f  +32][1];
+                }
+            }
+            hermitian( 4,8,mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im );
+            Matrix_mult484(mat48_1_re,mat48_1_im, mat84_tmp_re,mat84_tmp_im, mat44_tmp_re,mat44_tmp_im);
+            chol_inv(mat44_tmp_re,mat44_tmp_im,mat44_inv_re,mat44_inv_im);
+            Matrix_mult844(mat84_tmp_re,mat84_tmp_im, mat44_inv_re,mat44_inv_im, w84_re,w84_im);
+            Matrix_mult484(mat48_2_re,mat48_2_im,w84_re,w84_im,hw44_re,hw44_im);
+            // jiu xiangpian
+            double alpha=0;
+
+            for (int i=0;i<4;i++){
+                alpha += 0.25 * atan(hw44_im[i][i]/hw44_re[i][i]);
+
+            }
+            double hw2_44_re[4][4];
+            double hw2_44_im[4][4];
+            for(int i = 0 ; i < 4 ; i++ ){
+                for( int j = 0 ; j < 4 ; j++ ){
+                    mult(cos(alpha),-sin(alpha),hw44_re[i][j],hw44_im[i][j],&hw2_44_re[i][j],&hw2_44_im[i][j]);
+                }
+            }
+            //get x
+            double x_re[4][1];
+            double x_im[4][1];
+            double y41_re[4][1];
+            double y41_im[4][1];
+            for( int ip = 0 ; ip < 4 ; ip++ ){
+                x_re[ip][0] = pilot2[cnt_pilot][0];
+                x_im[ip][0] = pilot2[cnt_pilot++][1];
+                if(cnt_pilot == 1200){
+                    cnt_pilot = 0;
+                }
+            }
+            //y = hw*x
+            Matrix_mult441(hw2_44_re,hw2_44_im,x_re,x_im,y41_re,y41_im);
+
+            new_star[cnt_newstar][0] = y41_re[2][0];
+            new_star[cnt_newstar++][1] = y41_im[2][0];
+
+            if(cnt_newstar == 120){
+                cnt_newstar = 0;
+            }
+
+            cnt_allstar2 ++;
+            if( ( (y41_re[0][0] -x_re[0][0] )*(y41_re[0][0] -x_re[0][0]) + (y41_im[0][0] -x_im[0][0])*(y41_im[0][0] -x_im[0][0]) ) >0.5 ){
+                 cnt_err_g1++;
+            }
+
+            for( int i = 2 ; i < 4 ; i ++ ){
+                if( ( (y41_re[i][0] -x_re[i][0] )*(y41_re[i][0] -x_re[i][0]) + (y41_im[i][0] -x_im[i][0])*(y41_im[i][0] -x_im[i][0]) ) >0.5 ){
+                     cnt_err_g[i+5]++;
+                }
+            }
+
+            if( cnt_allstar2 == 500){
+                for( int i = 7 ; i < 9 ; i++ ){
+                    comp_err_1 = cnt_err_g[i] / cnt_allstar2;
+                   //height2[i] = -1+ (1-comp_err_1) ;
+                    height2[i] = -1+ i*0.3 ;
+
+                }
+
+
+
+                  qDebug() << " comp err : " << cnt_err_g1;
+                    qDebug() << " yre : " << y41_re[0][0]   << " yim : " << y41_im[0][0]  ;
+                    qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
+                  cnt_allstar1 = 0;
+                  cnt_err_g1 = 0;
+            }
+
+
+        }
+    }
+
 
    #ifdef onetime
     for (int i = 0;i<4;i++){
