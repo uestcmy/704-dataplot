@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 */
  return app.exec();
 
-    //edit in fedora
+    //edit in fedora on 20140111
 }
 
 
