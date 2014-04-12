@@ -243,6 +243,11 @@ void ThroughPut::Bar_ber(){
     sprintf(title[7],"16QAM");
     sprintf(title[8],"16QAM");
 
+    for( int i = 1 ; i < 5 ; i++ ){
+        comp_err[i] = comp_err[i+4];
+        height2[i] = height2[i+4];
+    }
+
     int scale = 2;
     for( int i = 0 ; i < 5 ; i ++ ){
         renderText(-2.5+ i * 1.05 ,2.2,1.1,title[i]);
