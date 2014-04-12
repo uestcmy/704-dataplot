@@ -23,7 +23,7 @@
 #include <QtGui/QApplication>
 #define LEN 9000
 #define LENGTH_OF_OFDM 14404
-//#define connected
+#define connected
 //#define TEST_SOCKET
 #include "chol_inv_4.cpp"
 #include "ui_throughput.h"
@@ -57,6 +57,8 @@ double cnt_err_g1 = 0;
 double cnt_err_g[8] ={0};
 
 double comp_err_1 = 0;
+double comp_err[10] = {0};
+
 double height2[9] = {0};
 ThroughPut::ThroughPut(QWidget *parent) :
     QGLWidget(parent),
@@ -148,6 +150,8 @@ void ThroughPut::Bar_ber(){
     }
     if(flag_bar == 1 || *(pdata2_3) - 0 > 1e-7 ){
         height2[0] =  -1 + (1-*(pdata2_3))*2;
+        comp_err[0] =  *(pdata2_3);
+
           flag_bar = 1;
     }
 #endif
@@ -241,7 +245,9 @@ void ThroughPut::Bar_ber(){
 
     for( int i = 0 ; i < 9 ; i ++ ){
         renderText(-2.5+ i * 1.01 ,2.2,1.1,title[i]);
-        renderText(-2.5+ i *1.01,-1.3,1.1,"5.123");
+        sprintf(db_2,"%.3lf",comp_err[i]);
+        renderText(-2.5+ i *1.01,-1.3,1.1,db_2);
+        //comp_err[i] = 0;
     }
 
 }
@@ -606,14 +612,20 @@ void ThroughPut::sys_function(){
            }
 
            if( cnt_allstar1 == 500){
-               for( int i = 0 ; i < 4 ; i++ ){
-                   comp_err_1 = cnt_err_g[i] / cnt_allstar1;
-                  //height2[i] = -1+ (1-comp_err_1) ;
-                   height2[i] = -1+ i*0.3 ;
+               for( int i = 1 ; i <= 4 ; i++ ){
+                   //comp_err_1 = cnt_err_g[i] / cnt_allstar1;
+                   comp_err[i] = cnt_err_g[i-1] / cnt_allstar1;
+
+                   height2[i] = -1+ (1-comp_err[i]) ;
+                   //height2[i] = -1+ i*0.3 ;
 
                }
-               height2[4] = height2[1] ;
-               height2[5] = height2[2] ;
+               //height2[0] =  -1 + ( 1 - cnt_err_g1/cnt_allstar1 );
+                   comp_err[0] = 1-  cnt_err_g1/cnt_allstar1;
+                   comp_err[5]  = comp_err[1];
+                   comp_err[6]  = comp_err[2];
+               height2[5] = height2[1] ;
+               height2[6] = height2[2] ;
 
 
                  qDebug() << " comp err : " << cnt_err_g1;
@@ -621,6 +633,8 @@ void ThroughPut::sys_function(){
                    qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
                  cnt_allstar1 = 0;
                  cnt_err_g1 = 0;
+                 cnt_err_g[0] = 0;cnt_err_g[1] =1;cnt_err_g[2] = 0;cnt_err_g[2] = 0;cnt_err_g[3] = 0;
+
            }
 
             new_star[cnt_newstar][0] = y41_re[0][0];
@@ -699,15 +713,19 @@ void ThroughPut::sys_function(){
 
             for( int i = 2 ; i < 4 ; i ++ ){
                 if( ( (y41_re[i][0] -x_re[i][0] )*(y41_re[i][0] -x_re[i][0]) + (y41_im[i][0] -x_im[i][0])*(y41_im[i][0] -x_im[i][0]) ) >0.5 ){
-                     cnt_err_g[i+5]++;
+                     cnt_err_g[i+4]++;
                 }
             }
 
             if( cnt_allstar2 == 500){
                 for( int i = 7 ; i < 9 ; i++ ){
-                    comp_err_1 = cnt_err_g[i] / cnt_allstar2;
-                   //height2[i] = -1+ (1-comp_err_1) ;
-                    height2[i] = -1+ i*0.3 ;
+                    //comp_err_1 = cnt_err_g[i] / cnt_allstar2;
+                    comp_err[i] = cnt_err_g[i-1] / cnt_allstar2;
+
+                    height2[i] = -1+ (1-comp_err[i]) ;
+
+
+                   // height2[i] = -1+ i*0.3 ;
 
                 }
 
@@ -718,6 +736,8 @@ void ThroughPut::sys_function(){
                     qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
                   cnt_allstar1 = 0;
                   cnt_err_g1 = 0;
+                  cnt_err_g[0] = 0;cnt_err_g[1] = 1;
+
             }
 
 
