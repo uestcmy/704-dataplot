@@ -118,7 +118,7 @@ void ThroughPut::resizeGL(int w, int h)
     //gluPerspective(40,1.33, 2, 30.0);
     //glOrtho (-1.5 * ( GLfloat ) w / ( GLfloat ) h, 2.3* ( GLfloat ) w / ( GLfloat ) h, -2, 2, -15.0, 15.0);
      //glFrustum (-1.5* ( GLfloat ) w / ( GLfloat ) h, 2* ( GLfloat ) w / ( GLfloat ) h, -2, 1.3, 6, 10.0);
-     glOrtho (-1.2 * ( GLfloat ) w / ( GLfloat ) h, 2.3* ( GLfloat ) w / ( GLfloat ) h, -2, 2, -10.0, 15.0);
+     glOrtho (-1.7* ( GLfloat ) w / ( GLfloat ) h, 1.5* ( GLfloat ) w / ( GLfloat ) h, -2, 2, -12.0, 15.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -168,13 +168,13 @@ void ThroughPut::Bar_ber(){
     glColor4f(0.5,0,1,0.8);
     glVertex2f(-3,2); //left up
     glVertex2f(-3,-1);// left,down
-    glVertex2f(6.5,-1);//right down
-    glVertex2f(6.5,2);//right up  [-3 6.5 2 -1]
+    glVertex2f(2.8,-1);//right down
+    glVertex2f(2.8,2);//right up  [-3 2.8 2 -1]
     glEnd();
     /*bar*/
    double pos = 0;
 
-    for( int i = 0 ; i < 9 ; i++ ){
+    for( int i = 0 ; i < 5 ; i++ ){
     glBegin(GL_QUADS);
     glColor4f(1,i/9.0,0,0.5);
     glVertex2f(-1.8+pos,-1);//x,y
@@ -192,7 +192,7 @@ void ThroughPut::Bar_ber(){
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
     glVertex2f(-3,1);
-    glVertex2f(6.5,1);//x,y
+    glVertex2f(2.8,1);//x,y
     glEnd();
     glColor3f(1,0,0);
     renderText(-3.5,1,1,"4");
@@ -200,7 +200,7 @@ void ThroughPut::Bar_ber(){
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
     glVertex2f(-3,0.5);
-    glVertex2f(6.5,0.5);//x,y
+    glVertex2f(2.8,0.5);//x,y
     glEnd();
     glColor3f(1,0,0);
     renderText(-3.5,0.5,1,"3");
@@ -208,7 +208,7 @@ void ThroughPut::Bar_ber(){
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
     glVertex2f(-3,0);
-    glVertex2f(6.5,0);//x,y
+    glVertex2f(2.8,0);//x,y
     glEnd();
     glColor3f(1,0,0);
     renderText(-3.5,0,1,"2");
@@ -216,7 +216,7 @@ void ThroughPut::Bar_ber(){
     glBegin(GL_LINE_STRIP);
     glColor4f(0,0,1,0.8);
     glVertex2f(-3,-0.5);
-    glVertex2f(6.5,-0.5);//x,y
+    glVertex2f(2.8,-0.5);//x,y
     glEnd();
 
     glColor3f(1,0,0);
@@ -234,19 +234,24 @@ void ThroughPut::Bar_ber(){
     }
     char title[9][50];
     sprintf(title[0],"16QAM");
-    sprintf(title[1],"16QAM");
-    sprintf(title[2],"16QAM");
-    sprintf(title[3],"16QAM");
-    sprintf(title[4],"16QAM");
+    sprintf(title[1],"Rx1");
+    sprintf(title[2],"Rx2");
+    sprintf(title[3],"Rx3");
+    sprintf(title[4],"Rx4");
     sprintf(title[5],"16QAM");
     sprintf(title[6],"16QAM");
     sprintf(title[7],"16QAM");
     sprintf(title[8],"16QAM");
 
-    for( int i = 0 ; i < 9 ; i ++ ){
-        renderText(-2.5+ i * 1.01 ,2.2,1.1,title[i]);
-        sprintf(db_2,"%.3lf",comp_err[i]);
-        renderText(-2.5+ i *1.01,-1.3,1.1,db_2);
+    int scale = 2;
+    for( int i = 0 ; i < 5 ; i ++ ){
+        renderText(-2.5+ i * 1.05 ,2.2,1.1,title[i]);
+        if( i == 0 ){
+            sprintf(db_2,"%.3lf",(1-comp_err[i])*4);
+        }else{
+            sprintf(db_2,"%.3lf",(1-comp_err[i])*2);
+        }
+        renderText(-2.5+ i *1.05,-1.3,1.1,db_2);
         //comp_err[i] = 0;
     }
 
