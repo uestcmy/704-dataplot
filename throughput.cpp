@@ -149,8 +149,12 @@ void ThroughPut::Bar_ber(){
         height2[0] = 0;
     }
     if(flag_bar == 1 || *(pdata2_3) - 0 > 1e-7 ){
-        height2[0] =  -1 + (1-*(pdata2_3))*2;
         comp_err[0] =  *(pdata2_3);
+        if( comp_err[0] >  0.75  ){
+            comp_err[0] = 1;
+        }
+        height2[0] =  -1 + (1-*(pdata2_3))*2;
+
 
           flag_bar = 1;
     }
@@ -244,6 +248,13 @@ void ThroughPut::Bar_ber(){
     sprintf(title[8],"16QAM");
 
     int scale = 2;
+
+    for( int i = 0 ; i < 5 ; i++ ){
+        if( comp_err[i] >  0.75  ){
+            comp_err[i] = 1;
+        }
+    }
+
     for( int i = 0 ; i < 5 ; i ++ ){
         renderText(-2.5+ i * 1.05 ,2.2,1.1,title[i]);
         if( i == 0 ){
@@ -620,13 +631,18 @@ void ThroughPut::sys_function(){
                for( int i = 1 ; i <= 4 ; i++ ){
                    //comp_err_1 = cnt_err_g[i] / cnt_allstar1;
                    comp_err[i] = cnt_err_g[i-1] / cnt_allstar1;
-
+                   if( comp_err[i] > 0.75){
+                       comp_err[i] = 1;
+                   }
                    height2[i] = -1+ (1-comp_err[i]) ;
                    //height2[i] = -1+ i*0.3 ;
 
                }
                //height2[0] =  -1 + ( 1 - cnt_err_g1/cnt_allstar1 );
                    comp_err[0] = 1-  cnt_err_g1/cnt_allstar1;
+                   if( comp_err[0] > 0.75){
+                       comp_err[0] = 1;
+                   }
                    comp_err[5]  = comp_err[1];
                    comp_err[6]  = comp_err[2];
                height2[5] = height2[1] ;
@@ -726,7 +742,9 @@ void ThroughPut::sys_function(){
                 for( int i = 7 ; i < 9 ; i++ ){
                     //comp_err_1 = cnt_err_g[i] / cnt_allstar2;
                     comp_err[i] = cnt_err_g[i-1] / cnt_allstar2;
-
+                    if( comp_err[i] > 0.75){
+                        comp_err[i] = 1;
+                    }
                     height2[i] = -1+ (1-comp_err[i]) ;
 
 
