@@ -232,10 +232,6 @@ void ThroughPut::Bar_ber(){
     glVertex2f(1.5,0.5);//x,y
     glEnd();
 
-
-    if(bit_cnt_2_3 == 19500 ){
-        sprintf(db_2,"%.3lf",4*(1-err_3/20000.0));
-    }
     char title[9][50];
     sprintf(title[0],"16QAM");
     sprintf(title[1],"UE1 Rx1");
@@ -247,22 +243,26 @@ void ThroughPut::Bar_ber(){
     sprintf(title[7],"16QAM");
     sprintf(title[8],"16QAM");
 
-    for( int i = 1 ; i < 5 ; i++ ){
-        comp_err[i] = comp_err[i+4];
-        height2[i] = height2[i+4];
+    if(1){
+        //sprintf(db_2,"%.3lf",4*(1-err_3/5000.0));
+
+        for( int i = 0 ; i < 5 ; i ++ ){
+            //renderText(-2.5+ i * 1.05 ,2.2,1.1,title[i]);
+            if( i == 0 ){
+                sprintf(db_2,"%.3lf",(1-comp_err[i])*4);
+            }else{
+                sprintf(db_2,"%.3lf",(1-comp_err[i])*2);
+            }
+           renderText(-2.5+ i *1.05,-1.3,1.1,db_2);
+            //comp_err[i] = 0;
+        }
+        qDebug()<< "   comp_err:  "   << comp_err[0] << comp_err[1] << comp_err[2] << comp_err[3] << comp_err[4];
+
     }
 
-    int scale = 2;
-    for( int i = 0 ; i < 5 ; i ++ ){
-        renderText(-2.5+ i * 1.05 ,2.2,1.1,title[i]);
-        if( i == 0 ){
-            sprintf(db_2,"%.3lf",(1-comp_err[i])*4);
-        }else{
-            sprintf(db_2,"%.3lf",(1-comp_err[i])*2);
-        }
-        renderText(-2.5+ i *1.05,-1.3,1.1,db_2);
-        //comp_err[i] = 0;
-    }
+
+
+
 
 }
 void ThroughPut::myDrawPoint(double x,double y,double z,double r){//x,y,z, and  radium
@@ -616,21 +616,22 @@ void ThroughPut::sys_function(){
 */
 
            cnt_allstar1 ++;
+           /*
            if( ( (y41_re[0][0] -x_re[0][0] )*(y41_re[0][0] -x_re[0][0]) + (y41_im[0][0] -x_im[0][0])*(y41_im[0][0] -x_im[0][0]) ) >0.5 ){
                 cnt_err_g1++;
            }
-
+*/
            for( int i = 0 ; i < 4 ; i ++ ){
                if( ( (y41_re[i][0] -x_re[i][0] )*(y41_re[i][0] -x_re[i][0]) + (y41_im[i][0] -x_im[i][0])*(y41_im[i][0] -x_im[i][0]) ) >0.5 ){
                     cnt_err_g[i]++;
                }
            }
 
-           if( cnt_allstar1 == 500){
+           if( cnt_allstar1 == 100){
                for( int i = 1 ; i <= 4 ; i++ ){
                    //comp_err_1 = cnt_err_g[i] / cnt_allstar1;
                    comp_err[i] = cnt_err_g[i-1] / cnt_allstar1;
-                   if( comp_err[i] > 0.75){
+                   if( comp_err[i] > 0.7){
                        comp_err[i] = 1;
                    }
                    height2[i] = -1+ (1-comp_err[i]) ;
@@ -639,11 +640,12 @@ void ThroughPut::sys_function(){
                }
                //height2[0] =  -1 + ( 1 - cnt_err_g1/cnt_allstar1 );
                    comp_err[0] = 1-  cnt_err_g1/cnt_allstar1;
-                   if( comp_err[0] > 0.75){
+                   if( comp_err[0] > 0.7){
                        comp_err[0] = 1;
                    }
-                   comp_err[5]  = comp_err[1];
-                   comp_err[6]  = comp_err[2];
+                comp_err[5]  = comp_err[1];
+                //   comp_err[5]  =  0.5;
+                comp_err[6]  = comp_err[2];
                height2[5] = height2[1] ;
                height2[6] = height2[2] ;
 
@@ -653,7 +655,7 @@ void ThroughPut::sys_function(){
                    qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
                  cnt_allstar1 = 0;
                  cnt_err_g1 = 0;
-                 cnt_err_g[0] = 0;cnt_err_g[1] =1;cnt_err_g[2] = 0;cnt_err_g[2] = 0;cnt_err_g[3] = 0;
+                 cnt_err_g[0] = 0;cnt_err_g[1] =0;cnt_err_g[2] = 0;cnt_err_g[2] = 0;cnt_err_g[3] = 0;
 
            }
 
@@ -739,7 +741,7 @@ void ThroughPut::sys_function(){
                 }
             }
 
-            if( cnt_allstar2 == 500){
+            if( cnt_allstar2 == 500){//
                 for( int i = 7 ; i < 9 ; i++ ){
                     //comp_err_1 = cnt_err_g[i] / cnt_allstar2;
                     comp_err[i] = cnt_err_g[i-1] / cnt_allstar2;
@@ -761,7 +763,7 @@ void ThroughPut::sys_function(){
                     qDebug() << " xre : " << x_re[0][0]   << " xim : " << x_im[0][0]  ;
                   cnt_allstar1 = 0;
                   cnt_err_g1 = 0;
-                  cnt_err_g[0] = 0;cnt_err_g[1] = 1;
+                  cnt_err_g[6] = 0;cnt_err_g[7] =0;
 
             }
 
@@ -1175,15 +1177,15 @@ int ThroughPut::ber(){
         }
         bit_cnt_2_3++;
 
-        if(bit_cnt_2_3 == 20000){
-            qDebug() << "BER :" <<err_3/20000.0 ;
+        if(bit_cnt_2_3 == 5000){
+            qDebug() << "BER :" <<err_3/5000.0 ;
             for( int i = num_p-1 ; i >= 1 ; i-- ){
                 *(pdata2_3+i) = *( pdata2_3+i-1);
             }
             if(err_3 -0 <1e-7){
                  *(pdata2_3) = 0 ;
             }else{
-                 *(pdata2_3) =   err_3/20000.0  ;
+                 *(pdata2_3) =   err_3/5000.0  ;
             }
              err_3 = 0;
              bit_cnt_2_3 = 0;
