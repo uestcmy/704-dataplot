@@ -23,7 +23,6 @@
 #include <QtGui/QApplication>
 #define LEN 9000
 #define LENGTH_OF_OFDM 14404
-#define THRESHOLD 0.75
 #define connected
 //#define TEST_SOCKET
 #include "chol_inv_4.cpp"
@@ -151,7 +150,7 @@ void ThroughPut::Bar_ber(){
     }
     if(flag_bar == 1 || *(pdata2_3) - 0 > 1e-7 ){
         comp_err[0] =  *(pdata2_3);
-        if( comp_err[0] > THRESHOLD ){
+        if( comp_err[0] >  0.75  ){
             comp_err[0] = 1;
         }
         height2[0] =  -1 + (1-*(pdata2_3))*2;
@@ -251,7 +250,7 @@ void ThroughPut::Bar_ber(){
     int scale = 2;
 
     for( int i = 0 ; i < 5 ; i++ ){
-        if( comp_err[i] >  THRESHOLD  ){
+        if( comp_err[i] >  0.75  ){
             comp_err[i] = 1;
         }
     }
@@ -632,7 +631,7 @@ void ThroughPut::sys_function(){
                for( int i = 1 ; i <= 4 ; i++ ){
                    //comp_err_1 = cnt_err_g[i] / cnt_allstar1;
                    comp_err[i] = cnt_err_g[i-1] / cnt_allstar1;
-                   if( comp_err[i] >  THRESHOLD  ){
+                   if( comp_err[i] > 0.75){
                        comp_err[i] = 1;
                    }
                    height2[i] = -1+ (1-comp_err[i]) ;
@@ -641,7 +640,7 @@ void ThroughPut::sys_function(){
                }
                //height2[0] =  -1 + ( 1 - cnt_err_g1/cnt_allstar1 );
                    comp_err[0] = 1-  cnt_err_g1/cnt_allstar1;
-                   if( comp_err[0] >  THRESHOLD  ){
+                   if( comp_err[0] > 0.75){
                        comp_err[0] = 1;
                    }
                    comp_err[5]  = comp_err[1];
@@ -743,7 +742,7 @@ void ThroughPut::sys_function(){
                 for( int i = 7 ; i < 9 ; i++ ){
                     //comp_err_1 = cnt_err_g[i] / cnt_allstar2;
                     comp_err[i] = cnt_err_g[i-1] / cnt_allstar2;
-                    if( comp_err[i] >  THRESHOLD  ){
+                    if( comp_err[i] > 0.75){
                         comp_err[i] = 1;
                     }
                     height2[i] = -1+ (1-comp_err[i]) ;

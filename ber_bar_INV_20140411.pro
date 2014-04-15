@@ -20,10 +20,8 @@ SOURCES += \
     ber.cpp \
     ber_bar.cpp \
     chol_inv_4.cpp \
-    main.cpp \
-    moc_ber.cpp \
-    moc_ber_bar.cpp \
-    throughput.cpp
+    throughput.cpp \
+    main.cpp
 
 FORMS += \
     ber.ui \
