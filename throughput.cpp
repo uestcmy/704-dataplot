@@ -149,8 +149,12 @@ void ThroughPut::Bar_ber(){
         height2[0] = 0;
     }
     if(flag_bar == 1 || *(pdata2_3) - 0 > 1e-7 ){
-        height2[0] =  -1 + (1-*(pdata2_3))*2;
+
         comp_err[0] =  *(pdata2_3);
+        if( comp_err[0] >  0.75  ){
+            comp_err[0] = 1;
+        }
+        height2[0] =  -1 + (1-comp_err[0])*2;
 
           flag_bar = 1;
     }
@@ -234,10 +238,10 @@ void ThroughPut::Bar_ber(){
     }
     char title[9][50];
     sprintf(title[0],"16QAM");
-    sprintf(title[1],"Rx1");
-    sprintf(title[2],"Rx2");
-    sprintf(title[3],"Rx3");
-    sprintf(title[4],"Rx4");
+    sprintf(title[1],"UE1 Rx1");
+    sprintf(title[2],"UE1 Rx2");
+    sprintf(title[3],"UE2 Rx1");
+    sprintf(title[4],"UE2 Rx2");
     sprintf(title[5],"16QAM");
     sprintf(title[6],"16QAM");
     sprintf(title[7],"16QAM");
@@ -339,9 +343,9 @@ void ThroughPut::timerEvent(QTimerEvent *event){
 
 
     //qDebug() << "Counter is " << cnt_2++ << endl;
-    /*
-    qDebug() << buff << endl;
-*/
+
+   //qDebug() << buff << endl;
+
     // inverse
     for( int i = 0 ; i < 2405 ; i ++){
        int position = i * 6;
@@ -457,12 +461,13 @@ void ThroughPut::timerEvent(QTimerEvent *event){
 
     ber();
 
-    recvfrom(sockser_chl1_4,&buff,LENGTH_OF_OFDM*3+10,0,(struct sockaddr *)&addrrcv_chl1_4,(socklen_t*)&size_chl2_4);//port :7021
+    recvfrom(sockser_chl1_4,&buff,LENGTH_OF_OFDM*3+10,0,(struct sockaddr *)&addrrcv_chl1_4,(socklen_t*)&size_chl2_4);//port :7021 c1cc
 
 
    // qDebug() << "Counter is " << cnt++ << endl;
 
-   // qDebug() << buff << endl;
+   //qDebug() << buff << endl;
+
     for( int i = 0 ; i < 2400 ; i ++){
        int position = i * 6;
        char tmp;
@@ -495,7 +500,7 @@ void ThroughPut::timerEvent(QTimerEvent *event){
     sys_function();//data >>   function >> HWS
 
 #endif
-    sys_function();//data >>   function >> HWS
+    //sys_function();//data >>   function >> HWS
 
     updateGL();
 
@@ -625,13 +630,18 @@ void ThroughPut::sys_function(){
                for( int i = 1 ; i <= 4 ; i++ ){
                    //comp_err_1 = cnt_err_g[i] / cnt_allstar1;
                    comp_err[i] = cnt_err_g[i-1] / cnt_allstar1;
-
+                   if( comp_err[i] > 0.75){
+                       comp_err[i] = 1;
+                   }
                    height2[i] = -1+ (1-comp_err[i]) ;
                    //height2[i] = -1+ i*0.3 ;
 
                }
                //height2[0] =  -1 + ( 1 - cnt_err_g1/cnt_allstar1 );
                    comp_err[0] = 1-  cnt_err_g1/cnt_allstar1;
+                   if( comp_err[0] > 0.75){
+                       comp_err[0] = 1;
+                   }
                    comp_err[5]  = comp_err[1];
                    comp_err[6]  = comp_err[2];
                height2[5] = height2[1] ;
@@ -662,7 +672,9 @@ void ThroughPut::sys_function(){
     for( int t = 0 ; t < 3 ; t++){//time
         for(int f = 0 ; f < 4 ; f ++){//freq
             // get data t1
-            for (int i = 0;i<4;i++){
+
+
+            for (int i = 2 ;i<4;i++){
                 for(int j=0;j<8;j++){
                     mat48_1_re[i][j]=data1[i*256+j + 64*t + 8*f  +32][0];//s1 ue2
                     mat48_1_im[i][j]=data1[i*256+j + 64*t + 8*f  +32][1];
@@ -731,7 +743,10 @@ void ThroughPut::sys_function(){
                 for( int i = 7 ; i < 9 ; i++ ){
                     //comp_err_1 = cnt_err_g[i] / cnt_allstar2;
                     comp_err[i] = cnt_err_g[i-1] / cnt_allstar2;
+                    if(  comp_err[i] > 0.75){
+                        comp_err[i] = 1;
 
+                    }
                     height2[i] = -1+ (1-comp_err[i]) ;
 
 
@@ -739,7 +754,7 @@ void ThroughPut::sys_function(){
 
                 }
 
-
+                qDebug() << " height 7 8 " <<height2[7] << height2[8];
 
                   qDebug() << " comp err : " << cnt_err_g1;
                     qDebug() << " yre : " << y41_re[0][0]   << " yim : " << y41_im[0][0]  ;
