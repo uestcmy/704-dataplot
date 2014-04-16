@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     w24.setWindowTitle("BER");
 */
     ThroughPut w5;
+    w5.setGeometry(5,700,600,250);
     w5.resize(600,250);
     w5.show();
     w5.setWindowTitle(" Mu_MIMO ThroughPut (Port:7008)");
