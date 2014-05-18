@@ -2,9 +2,7 @@
 
 #include <QApplication>
 
-#include <qpsk.h>
-#include <ber_bar.h>
-#include <ber.h>
+
 #include <throughput.h>
 #include <GL/glut.h>
 
@@ -35,16 +33,15 @@ int main(int argc, char *argv[])
     w24.setWindowTitle("BER");
 */
     ThroughPut w5;
-    w5.setGeometry(5,700,600,250);
-    w5.resize(600,250);
+    w5.resize(300,250);
     w5.show();
-    w5.setWindowTitle(" Mu_MIMO ThroughPut (Port:7008)");
+    w5.setWindowTitle(" CB ThroughPut (Port:7009)");
 
 /*
     BER_BAR w4;
     w4.resize(600,450);
     w4.show();
-    w4.setWindowTitle("BER (Port:7007)");
+    w4.setWindowTitle("BER (Port:7024)");
 
 */
  return app.exec();
